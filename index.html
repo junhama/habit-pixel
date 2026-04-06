@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+    <meta name="description" content="毎日の習慣を記録して美しいピクセルアートを完成させよう - habit-pixel">
+    <meta name="theme-color" content="#6C5CE7">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="habit-pixel">
+    <title>habit-pixel - ピクセルアート習慣トラッカー</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icons/icon-192x192.png">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <a href="#main-content" class="skip-link">メインコンテンツへ</a>
+    
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-top">
+                <h1>💎 habit-pixel</h1>
+                <button class="btn-premium" id="premiumBtn" onclick="openPremiumModal()" title="プレミアム">👑</button>
+            </div>
+            <p class="subtitle">毎日の習慣が、未来のアートに</p>
+        </header>
+
+        <main id="main-content" class="main-content">
+            <!-- Spirit Section (V2) -->
+            <section class="spirit-section" id="spiritSection" aria-labelledby="spirit-heading">
+                <h2 id="spirit-heading" class="visually-hidden">あなたの精霊</h2>
+                <div class="spirit-container" id="spiritContainer">
+                    <div class="spirit-canvas" id="spiritCanvas">
+                        <svg viewBox="0 0 100 100" class="spirit-svg" id="spiritSvg">
+                            <defs>
+                                <radialGradient id="spiritGlow" cx="50%" cy="50%" r="50%">
+                                    <stop offset="0%" style="stop-color:rgba(108,92,231,0.8)" />
+                                    <stop offset="100%" style="stop-color:rgba(108,92,231,0)" />
+                                </radialGradient>
+                                <filter id="glow"><feGaussianBlur stdDeviation="3" result="coloredBlur"/><feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+                            </defs>
+                            <circle cx="50" cy="50" r="35" fill="url(#spiritGlow)" class="spirit-aura"/>
+                            <g class="spirit-body" filter="url(#glow)">
+                                <circle cx="50" cy="45" r="20" class="spirit-head"/>
+                                <circle cx="38" cy="40" r="3" class="spirit-eye"/>
+                                <circle cx="62" cy="40" r="3" class="spirit-eye"/>
+                                <path d="M45 52 Q50 56 55 52" class="spirit-mouth"/>
+                                <ellipse cx="50" cy="65" rx="12" ry="8" class="spirit-body-lower"/>
+                                <ellipse cx="35" cy="60" rx="5" ry="8" class="spirit-wing-left"/>
+                                <ellipse cx="65" cy="60" rx="5" ry="8" class="spirit-wing-right"/>
+                            </g>
+                        </svg>
+                    </div>
+                    <div class="spirit-info">
+                        <p class="spirit-name" id="spiritName">たまごっち</p>
+                        <p class="spirit-stage" id="spiritStage">段階 1/16</p>
+                        <div class="spirit-xp-bar"><div class="spirit-xp-fill" id="spiritXpFill"></div></div>
+                        <p class="spirit-xp-text" id="spiritXpText">0/7 XP</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Habit List -->
+            <section class="habits-section" id="habitsSection" aria-labelledby="habits-heading">
+                <h2 id="habits-heading">あなたの習慣 <span class="habit-count">(<span id="activeHabits">0</span><span id="habitLimit">/3</span>)</span><span class="premium-indicator" id="premiumIndicator" style="display:none">👑 無制限</span></h2>
+                <div class="habits-list" id="habitsList" role="list" aria-label="習慣リスト"></div>
+                <button class="btn-add-habit" id="addHabitBtn" onclick="openAddModal()" aria-label="新しい習慣を追加">+ 習慣を追加</button>
+            </section>
+
+            <!-- Pixel Art Canvas -->
+            <section class="pixel-section" id="pixelSection" aria-labelledby="pixel-heading">
+                <h2 id="pixel-heading" class="visually-hidden">ピクセルアート</h2>
+                <div class="pixel-card" id="shareCard">
+                    <div class="pixel-header"><span class="pixel-icon" aria-hidden="true">🎨</span><span class="pixel-title">My Habit Art</span></div>
+                    <div class="pixel-canvas-container">
+                        <div class="pixel-canvas" id="pixelCanvas" role="img" aria-label="習慣の完成度を表すピクセルアート"></div>
+                    </div>
+                    <div class="pixel-info"><p id="artProgress">0% 完成</p><p id="artStreak">継続: 0日 / ベスト: 0日</p></div>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn-share" onclick="generateShareCard()" aria-label="シェアカードを作成する">📤 シェア</button>
+                    <button class="btn-export" id="exportBtn" onclick="exportCSV()" aria-label="レポートをCSVエクスポート" style="display:none">📊 エクスポート</button>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats-section" aria-label="統計情報">
+                <div class="stat-card"><span class="stat-icon" aria-hidden="true">🔥</span><span class="stat-value" id="currentStreak">0</span><span class="stat-label">連続記録</span></div>
+                <div class="stat-card"><span class="stat-icon" aria-hidden="true">⭐</span><span class="stat-value" id="bestStreak">0</span><span class="stat-label">ベスト記録</span></div>
+                <div class="stat-card"><span class="stat-icon" aria-hidden="true">✨</span><span class="stat-value" id="totalDays">0</span><span class="stat-label">合計記録</span></div>
+            </section>
+
+            <!-- Community Section (V2) -->
+            <section class="community-section" id="communitySection" aria-labelledby="community-heading">
+                <h2 id="community-heading">🤝 コミュニティ</h2>
+                <div class="community-content">
+                    <div class="partner-section">
+                        <h3>習慣パートナー</h3>
+                        <div class="partner-list" id="partnerList"><p class="partner-empty">まだパートナーがいません</p></div>
+                        <button class="btn-add-partner" onclick="openPartnerModal()">+ パートナーを探す</button>
+                    </div>
+                    <div class="ranking-section">
+                        <h3>週間ランキング</h3>
+                        <div class="ranking-list" id="rankingList">
+                            <div class="ranking-item"><span class="rank">1</span><span class="name">あなた</span><span class="score">14日</span></div>
+                            <div class="ranking-item"><span class="rank">2</span><span class="name">ユーザーA</span><span class="score">7日</span></div>
+                            <div class="ranking-item"><span class="rank">3</span><span class="name">ユーザーB</span><span class="score">5日</span></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Donation Section -->
+            <section class="tipping" aria-label="サポート">
+                <p>habit-pixel で習慣化をサポート 💙</p>
+                <div class="tipping-buttons">
+                    <a href="https://www.buymeacoffee.com/" target="_blank" rel="noopener noreferrer" class="bmc-button" aria-label="Buy Me a Coffeeで作者を応援する">☕ 作者を応援する</a>
+                    <a href="https://ko-fi.com/" target="_blank" rel="noopener noreferrer" class="kofi-button" aria-label="Ko-fiで作者を応援する">❤️ コーヒーを贈る</a>
+                </div>
+            </section>
+        </div>
+
+        <!-- Add Habit Modal -->
+        <div class="modal" id="addModal" role="dialog" aria-modal="true" aria-labelledby="add-modal-heading">
+            <div class="modal-content" role="document">
+                <h3 id="add-modal-heading">新しい習慣</h3>
+                <input type="text" id="habitName" placeholder="習慣の名前" maxlength="20" aria-label="習慣の名前">
+                <div class="icon-selector">
+                    <label>アイコンを選択:</label>
+                    <div class="icon-options" id="iconOptions" role="radiogroup" aria-label="アイコン選択">
+                        <span class="icon-option selected" data-icon="💪" role="radio" tabindex="0" aria-label="筋トレ">💪</span>
+                        <span class="icon-option" data-icon="📚" role="radio" tabindex="0" aria-label="読書">📚</span>
+                        <span class="icon-option" data-icon="💻" role="radio" tabindex="0" aria-label="プログラミング">💻</span>
+                        <span class="icon-option" data-icon="✍️" role="radio" tabindex="0" aria-label="執筆">✍️</span>
+                        <span class="icon-option" data-icon="🏃" role="radio" tabindex="0" aria-label="ランニング">🏃</span>
+                        <span class="icon-option" data-icon="🧘" role="radio" tabindex="0" aria-label="瞑想">🧘</span>
+                        <span class="icon-option" data-icon="🎵" role="radio" tabindex="0" aria-label="音楽">🎵</span>
+                        <span class="icon-option" data-icon="🎨" role="radio" tabindex="0" aria-label="アート">🎨</span>
+                        <span class="icon-option" data-icon="🌱" role="radio" tabindex="0" aria-label="園芸">🌱</span>
+                        <span class="icon-option" data-icon="💊" role="radio" tabindex="0" aria-label="服薬">💊</span>
+                        <span class="icon-option" data-icon="🚰" role="radio" tabindex="0" aria-label="水分補給">🚰</span>
+                        <span class="icon-option" data-icon="🌙" role="radio" tabindex="0" aria-label="早起き">🌙</span>
+                    </div>
+                </div>
+                <div class="frequency-selector">
+                    <label for="habitFrequency">目標頻度:</label>
+                    <select id="habitFrequency" aria-label="目標頻度">
+                        <option value="daily">毎日</option>
+                        <option value="weekly3">週3回</option>
+                        <option value="weekly5">週5回</option>
+                    </select>
+                </div>
+                <div class="modal-buttons">
+                    <button class="btn-cancel" onclick="closeAddModal()" aria-label="キャンセル">キャンセル</button>
+                    <button class="btn-save" onclick="saveHabit()" aria-label="習慣を保存">保存</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Premium Modal -->
+        <div class="modal premium-modal" id="premiumModal" role="dialog" aria-modal="true" aria-labelledby="premium-modal-heading">
+            <div class="modal-content premium-content" role="document">
+                <h3 id="premium-modal-heading">habit-pixel Premium 👑</h3>
+                <div class="premium-features">
+                    <h4>プレミアム特典</h4>
+                    <ul>
+                        <li>✨ <strong>習慣無制限</strong> - 好きなだけ登録可能</li>
+                        <li>🎨 <strong>256色パレット</strong> - 美しいピクセルアート</li>
+                        <li>📊 <strong>CSVエクスポート</strong> - データを自由に活用</li>
+                        <li>👻 <strong>精霊システム</strong> - 全16段階の進化</li>
+                        <li>🤝 <strong>パートナー機能</strong> - 友達と励まし合う</li>
+                    </ul>
+                </div>
+                <div class="premium-pricing">
+                    <button class="btn-subscribe monthly" onclick="subscribePremium('monthly')">
+                        <span class="price">¥480</span>
+                        <span class="period">/月</span>
+                    </button>
+                    <button class="btn-subscribe yearly" onclick="subscribePremium('yearly')">
+                        <span class="badge">20%OFF</span>
+                        <span class="price">¥3,800</span>
+                        <span class="period">/年</span>
+                        <span class="savings">¥960お得</span>
+                    </button>
+                </div>
+                <button class="btn-cancel premium-close" onclick="closePremiumModal()" aria-label="閉じる">閉じる</button>
+            </div>
+        </div>
+
+        <!-- Partner Modal -->
+        <div class="modal partner-modal" id="partnerModal" role="dialog" aria-modal="true" aria-labelledby="partner-modal-heading">
+            <div class="modal-content partner-content" role="document">
+                <h3 id="partner-modal-heading">パートナーを探す</h3>
+                <div class="partner-search">
+                    <input type="text" id="partnerIdInput" placeholder="パートナーIDを入力" maxlength="20">
+                    <button class="btn-search" onclick="searchPartner()">検索</button>
+                </div>
+                <div class="partner-results" id="partnerResults"></div>
+                <button class="btn-cancel" onclick="closePartnerModal()">閉じる</button>
+            </div>
+        </div>
+
+        <!-- Share Modal -->
+        <div class="modal share-modal" id="shareModal" role="dialog" aria-modal="true" aria-labelledby="share-modal-heading">
+            <div class="modal-content share-content" role="document">
+                <h3 id="share-modal-heading">シェアカード完成！</h3>
+                <div id="cardPreview"></div>
+                <p class="share-text">習慣を継続して、アートを完成させよう！ #habitpixel</p>
+                <div class="modal-buttons">
+                    <button class="btn-download" onclick="downloadCard()" aria-label="画像を保存">💾 保存</button>
+                    <button class="btn-close" onclick="closeShareModal()" aria-label="モーダルを閉じる">閉じる</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js');
+        }
+    </script>
+</body>
+</html>
